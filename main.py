@@ -1,28 +1,29 @@
-import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 
 
-// ---------------- CONFIG ----------------
-const TOKEN = "DISCORD_TOKEN"; // <--- Zet hier je bot token
-const CLIENT_ID = "1410627256593682432"; // <--- Bot ID
-const GUILD_ID = "1410623409863393302"; // <--- Server ID waar je dit wilt doen
+import discord
+from discord.ext import commands
+from discord import app_commands
 
+# ---------------- CONFIG ----------------
+TOKEN = "DISCORD_TOKEN"  # <--- Zet hier je bot token
+GUILD_ID = 1410623409863393302  # <--- Server ID waar je dit wilt doen
 
-// Rollen die moeten worden aangemaakt
-const roles = [
-{ name: "👑 Owner", color: 0xff0000, permissions: [PermissionFlagsBits.Administrator] },
-{ name: "🛠️ Admin", color: 0xff8800, permissions: [PermissionFlagsBits.Administrator] },
-{ name: "👮 Politie", color: 0x0055ff },
-{ name: "🎖️ KMAR", color: 0x0033aa },
-{ name: "🚑 EMS", color: 0xff3333 },
-{ name: "🚒 ANWB", color: 0xffaa00 },
-{ name: "💣 Crimineel", color: 0x660000 },
-{ name: "👤 Burger", color: 0xaaaaaa },
-{ name: "🤖 Bot", color: 0x00ffcc }
-];
+# Rollen die moeten worden aangemaakt
+roles = [
+    {"name": "👑 Owner", "color": discord.Color.red(), "permissions": discord.Permissions.all()},
+    {"name": "🛠️ Admin", "color": discord.Color.orange(), "permissions": discord.Permissions.all()},
+    {"name": "👮 Politie", "color": discord.Color.blue()},
+    {"name": "🎖️ KMAR", "color": discord.Color.dark_blue()},
+    {"name": "🚑 EMS", "color": discord.Color.red()},
+    {"name": "🚒 ANWB", "color": discord.Color.orange()},
+    {"name": "💣 Crimineel", "color": discord.Color.dark_red()},
+    {"name": "👤 Burger", "color": discord.Color.light_grey()},
+    {"name": "🤖 Bot", "color": discord.Color.teal()},
+]
 
-
-// Categorieën en kanalen (versimpeld voorbeeld, jouw volledige JSON kan je hier plakken)
-const categories = [
+# Categorieën en kanalen
+categories = [
+   
  {
       "name": "👤 Speler Logs",
       "channels": [
@@ -178,77 +179,37 @@ const categories = [
         "📢・discord-announcement-logs"
       ]
     }
-  ];
+  ]
+# ---------------- BOT SETUP ----------------
+intents = discord.Intents.default()
+intents.guilds = True
 
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-// ---------------- BOT SETUP ----------------
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+@bot.event
+async def on_ready():
+    print(f"✅ Ingelogd als {bot.user}")
 
+@bot.tree.command(name="server", description="Maak alle rollen, categorieën en kanalen aan")
+@app_commands.checks.has_permissions(administrator=True)
+async def server_setup(interaction: discord.Interaction):
+    await interaction.response.send_message("🚀 Server setup wordt gestart...", ephemeral=True)
 
-// Slash command registreren
-const commands = [
-new SlashCommandBuilder()
-.setName("server")
-.setDescription("Maak alle rollen, categorieën en kanalen aan")
-.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-];
+    # Rollen maken
+    for role in roles:
+        await interaction.guild.create_role(
+            name=role["name"],
+            color=role.get("color", discord.Color.default()),
+            permissions=role.get("permissions", discord.Permissions.none()),
+            reason="Server setup rol aanmaak"
+        )
 
+    # Categorieën + kanalen maken
+    for cat in categories:
+        category = await interaction.guild.create_category(cat["name"])
+        for ch in cat["channels"]:
+            await interaction.guild.create_text_channel(ch, category=category)
 
-const rest = new REST({ version: "10" }).setToken(TOKEN);
+    await interaction.followup.send("✅ Server setup voltooid!")
 
-
-(async () => {
-try {
-console.log("Registering slash commands...");
-await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
-body: commands.map(cmd => cmd.toJSON()),
-});
-console.log("Slash commands registered.");
-} catch (error) {
-console.error(error);
-}
-})();
-
-
-// ---------------- COMMAND HANDLER ----------------
-client.on("ready", () => {
-console.log(`✅ Ingelogd als ${client.user.tag}`);
-});
-
-
-client.on("interactionCreate", async (interaction) => {
-if (!interaction.isChatInputCommand()) return;
-
-
-if (interaction.commandName === "server") {
-await interaction.reply({ content: "🚀 Server setup wordt gestart...", ephemeral: true });
-
-
-// Rollen maken
-for (const role of roles) {
-await interaction.guild.roles.create({
-name: role.name,
-color: role.color,
-permissions: role.permissions || [],
-reason: "Server setup rol aanmaak"
-});
-}
-
-
-// Categorieën + kanalen maken
-for (const cat of categories) {
-const category = await interaction.guild.channels.create({
-name: cat.name,
-type: 4 // CATEGORY
-});
-
-
-for (const ch of cat.channels) {
-await interaction.guild.channels.create({
-name: ch,
-type: 0, // TEXT
-parent: category.id
-});
-}
-}
-client.login(TOKEN);
+bot.run(TOKEN)
