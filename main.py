@@ -17,14 +17,17 @@ staff_roles = [
     {"name": "Noorderveen Staff", "color": discord.Color.teal()}
 ]
 
-# Logcategorieën + kanalen
+# Logcategorieën + alle kanalen APART
 categories = [
     {
         "name": "👤 Speler Logs",
         "channels": [
-            "⚡・join-leave-logs", "🕵️・name-change-logs", "⏱️・playtime-logs",
-            "📍・location-logs", "🎯・kill-logs", "❤️・revive-logs", "💉・heal-logs",
-            "🍔・status-logs", "👥・interaction-logs", "🎮・animation-logs", "🗣️・voice-logs"
+            "⚡・join-logs", "⚡・leave-logs", "🕵️・name-change-logs",
+            "🖼️・avatar-change-logs", "⏱️・playtime-logs", "📍・location-logs",
+            "🎯・kill-logs", "❤️・revive-logs", "💉・heal-logs",
+            "🍔・status-logs", "👥・interaction-logs", "🎮・animation-logs",
+            "🎤・voice-join-logs", "🔇・voice-leave-logs", "🔊・voice-mute-logs",
+            "🎧・voice-deafen-logs", "📢・voice-move-logs"
         ]
     },
     {
@@ -33,7 +36,8 @@ categories = [
             "👮・admin-actions", "🔨・ban-logs", "❌・kick-logs", "⚠️・warn-logs",
             "🎁・giveitem-logs", "💎・giveweapon-logs", "💵・givemoney-logs",
             "🚀・teleport-logs", "👀・spectate-logs", "📢・report-handling-logs",
-            "📋・announcement-logs", "🛠️・admin-repair-logs"
+            "📋・announcement-logs", "🛠️・admin-repair-logs", "📌・pin-logs",
+            "🗑️・delete-message-logs", "✏️・edit-message-logs"
         ]
     },
     {
@@ -93,24 +97,23 @@ categories = [
         "channels": [
             "🐛・error-logs", "🔧・resource-logs", "📡・anticheat-logs",
             "🌐・connection-logs", "📊・performance-logs", "🔒・security-logs",
-            "💻・command-logs", "🕹️・script-event-logs"
+            "💻・command-logs", "🕹️・script-event-logs", "🔑・role-change-logs",
+            "👤・permission-change-logs", "📂・channel-create-logs",
+            "🗑️・channel-delete-logs", "✏️・channel-edit-logs"
         ]
     },
     {
         "name": "🤖 Discord ↔ Server Sync",
         "channels": [
             "🔗・discord-link-logs", "🎫・ticket-logs", "📨・report-logs",
-            "🤖・bot-logs", "🛡️・role-change-logs", "📢・discord-announcement-logs"
+            "🤖・bot-logs", "🛡️・role-change-logs", "📢・discord-announcement-logs",
+            "📋・discord-message-logs"
         ]
     }
 ]
 
 # ---------------- BOT SETUP ----------------
-intents = discord.Intents.default()
-intents.guilds = True
-intents.members = True
-intents.message_content = True
-
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="/", intents=intents)
 
 @bot.event
@@ -118,7 +121,7 @@ async def on_ready():
     await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
     print(f"✅ Ingelogd als {bot.user} en commands gesynct in {GUILD_ID}")
 
-@bot.tree.command(name="server", description="Maak rollen, categorieën en log-kanalen aan")
+@bot.tree.command(name="server", description="Maak rollen, categorieën en ALLE log-kanalen aan")
 @app_commands.checks.has_permissions(administrator=True)
 async def server_setup(interaction: discord.Interaction):
     await interaction.response.send_message("🚀 Server setup gestart...", ephemeral=True)
@@ -147,6 +150,6 @@ async def server_setup(interaction: discord.Interaction):
         for ch in cat["channels"]:
             await interaction.guild.create_text_channel(ch, category=category, overwrites=overwrites)
 
-    await interaction.followup.send("✅ Server setup voltooid!")
+    await interaction.followup.send("✅ Server setup voltooid! Alle logs zijn nu apart gezet.")
 
 bot.run(TOKEN)
