@@ -1,12 +1,11 @@
-
 import os
 import discord
 from discord.ext import commands
 from discord import app_commands
 
 # ---------------- CONFIG ----------------
-TOKEN = os.getenv("DISCORD_TOKEN")  # <--- Zet hier je bot token
-GUILD_ID = 1410623409863393302  # <--- Server ID waar je dit wilt doen
+TOKEN = os.getenv("DISCORD_TOKEN")  # Zet je bot token in Render → Environment → DISCORD_TOKEN
+GUILD_ID = 1410623409863393302  # Zet hier je server ID
 
 # Rollen die moeten worden aangemaakt
 roles = [
@@ -183,12 +182,15 @@ categories = [
 # ---------------- BOT SETUP ----------------
 intents = discord.Intents.default()
 intents.guilds = True
+intents.members = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"✅ Ingelogd als {bot.user}")
+    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+    print(f"✅ Ingelogd als {bot.user} en commands gesynct in {GUILD_ID}")
 
 @bot.tree.command(name="server", description="Maak alle rollen, categorieën en kanalen aan")
 @app_commands.checks.has_permissions(administrator=True)
