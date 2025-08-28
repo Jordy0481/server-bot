@@ -1,0 +1,14 @@
+{
+  "name": "rp-logs-server-bot",
+  "version": "1.0.0",
+  "description": "Bot die rollen, categorieën en kanalen maakt voor een RP logs server met /server command.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.3.1"
+  }
+}
