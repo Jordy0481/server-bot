@@ -22,8 +22,7 @@ roles = [
 
 # Categorieën en kanalen
 categories = [
-   
- {
+    {
       "name": "👤 Speler Logs",
       "channels": [
         "⚡・join-leave-logs",
@@ -178,7 +177,8 @@ categories = [
         "📢・discord-announcement-logs"
       ]
     }
-  ]
+]
+
 # ---------------- BOT SETUP ----------------
 intents = discord.Intents.default()
 intents.guilds = True
@@ -189,10 +189,15 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
-    print(f"✅ Ingelogd als {bot.user} en commands gesynct in {GUILD_ID}")
+    try:
+        synced = await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+        print(f"✅ Ingelogd als {bot.user}")
+        print(f"🔗 Slash commands gesynct: {[cmd.name for cmd in synced]}")
+    except Exception as e:
+        print(f"❌ Sync error: {e}")
 
-@bot.tree.command(name="server", description="Maak alle rollen, categorieën en kanalen aan")
+# ---------------- COMMAND ----------------
+@bot.tree.command(name="server", description="Maak alle rollen, categorieën en kanalen aan", guild=discord.Object(id=GUILD_ID))
 @app_commands.checks.has_permissions(administrator=True)
 async def server_setup(interaction: discord.Interaction):
     await interaction.response.send_message("🚀 Server setup wordt gestart...", ephemeral=True)
