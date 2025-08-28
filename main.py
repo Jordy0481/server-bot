@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 
 # ---------------- CONFIG ----------------
-TOKEN = "DISCORD_TOKEN"  # <--- Zet hier je bot token
+TOKEN = os.getenv("DISCORD_TOKEN")  # <--- Zet hier je bot token
 GUILD_ID = 1410623409863393302  # <--- Server ID waar je dit wilt doen
 
 # Rollen die moeten worden aangemaakt
