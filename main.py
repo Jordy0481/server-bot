@@ -235,4 +235,4 @@ async def on_ready():
                     await guild.create_voice_channel(ch["name"], category=category)
                     print(f"Voice channel created: {ch['name']}")
 
-bot.run("YOUR_BOT_TOKEN")
+bot.run("DISCORD_TOKEN")
