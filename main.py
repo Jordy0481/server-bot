@@ -1,14 +1,17 @@
 import os
+import asyncio
 import discord
 from discord.ext import commands
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-GUILD_ID = 1463903186665341052  # vervang door je server ID
+GUILD_ID = 1463903186665341052
 STAFF_ROLES = ["🛡️ Moderator", "🛡️ Senior Moderator", "👑 Admin"]
 
-# Rollen met emoji
+SETUP_DONE = False  # 🔒 voorkomt dubbele setup
+
+# ---------------- ROLES ----------------
 roles = [
     {"name": "🆕 Nieuw Lid", "color": discord.Color.blue()},
     {"name": "👤 Lid", "color": discord.Color.green()},
@@ -27,7 +30,7 @@ roles = [
     {"name": "🎥 Streamer", "color": discord.Color.gold()},
 ]
 
-# Categorieën en kanalen (NL + EN)
+# ---------------- CATEGORIES ----------------
 categories = {
     "📌 START / INFO": [
         {"name": "👋│welcome", "type": "text"},
@@ -200,42 +203,74 @@ categories = {
     ],
 }
 
+
+# ---------------- READY EVENT ----------------
 @bot.event
 async def on_ready():
-    print(f"Bot is online! Logged in as {bot.user}")
-    guild = bot.get_guild(GUILD_ID)
+    global SETUP_DONE
+    if SETUP_DONE:
+        return
 
-    # Rollen aanmaken
+    print(f"✅ Bot online als {bot.user}")
+    await asyncio.sleep(5)  # ⏳ gateway stabiliseren
+
+    guild = bot.get_guild(GUILD_ID)
+    if not guild:
+        print("❌ Guild niet gevonden. Check GUILD_ID.")
+        return
+
+    # -------- Rollen --------
     for role in roles:
         if not discord.utils.get(guild.roles, name=role["name"]):
-            await guild.create_role(name=role["name"], color=role["color"])
-            print(f"Role created: {role['name']}")
+            await guild.create_role(
+                name=role["name"],
+                color=role["color"],
+                reason="Initial server setup"
+            )
+            await asyncio.sleep(0.8)
 
-    # Categorieën en kanalen aanmaken
+    # -------- Categories & Channels --------
     for cat_name, chans in categories.items():
         category = discord.utils.get(guild.categories, name=cat_name)
         if not category:
             category = await guild.create_category(cat_name)
-            print(f"Category created: {cat_name}")
+            await asyncio.sleep(1)
 
         for ch in chans:
             if ch["type"] == "text":
                 if not discord.utils.get(guild.text_channels, name=ch["name"]):
                     overwrites = {}
-                    # Alleen staff kan Staff/Logs zien
                     if cat_name == "🛡️ Staff / Logs":
+                        overwrites[guild.default_role] = discord.PermissionOverwrite(view_channel=False)
                         for role_name in STAFF_ROLES:
                             role = discord.utils.get(guild.roles, name=role_name)
                             if role:
                                 overwrites[role] = discord.PermissionOverwrite(view_channel=True, send_messages=True)
-                        overwrites[guild.default_role] = discord.PermissionOverwrite(view_channel=False)
-                    await guild.create_text_channel(ch["name"], category=category, overwrites=overwrites)
-                    print(f"Text channel created: {ch['name']}")
+
+                    await guild.create_text_channel(
+                        ch["name"],
+                        category=category,
+                        overwrites=overwrites
+                    )
+                    await asyncio.sleep(0.6)
+
             elif ch["type"] == "voice":
                 if not discord.utils.get(guild.voice_channels, name=ch["name"]):
-                    await guild.create_voice_channel(ch["name"], category=category)
-                    print(f"Voice channel created: {ch['name']}")
+                    await guild.create_voice_channel(
+                        ch["name"],
+                        category=category
+                    )
+                    await asyncio.sleep(0.6)
 
+    SETUP_DONE = True
+    print("🎉 Server setup compleet!")
+
+# ---------------- RUN ----------------
 TOKEN = os.getenv("DISCORD_TOKEN")
+if not TOKEN:
+    raise RuntimeError("DISCORD_TOKEN ontbreekt!")
+
 bot.run(TOKEN)
+
+
 
