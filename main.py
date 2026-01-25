@@ -5,7 +5,7 @@ from discord import app_commands
 
 # ---------------- CONFIG ----------------
 TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD_ID = 1410623409863393302  # jouw server ID
+GUILD_ID = 1463903186665341052  # jouw server ID
 
 # ---------------- ROLES ----------------
 roles = [
